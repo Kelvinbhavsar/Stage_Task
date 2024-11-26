@@ -1,7 +1,19 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
+import 'package:sample_movie_app/Model/movieModel.dart';
+import 'package:sample_movie_app/Screens/movieDetails.dart';
+import 'Provider/likeUnlikeProvider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => MovieProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -31,7 +43,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Movie List'),
     );
   }
 }
@@ -55,71 +67,163 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  bool showFavorites = false;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  TextEditingController search = TextEditingController();
+  String searchQuery = '';
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MovieProvider>().fetchMovies();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final movieProvider = context.watch<MovieProvider>();
+    List<Movie> allMovies = showFavorites
+        ? movieProvider.movies.where((movie) => movie.isFavorite).toList()
+        : movieProvider.movies;
+
+    // Filter movies based on search query
+    List<Movie> filteredMovies = allMovies.where((movie) {
+      return movie.title.toLowerCase().contains(searchQuery.toLowerCase());
+    }).toList();
+
+    // movieProvider.fetchMovies();
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              movieProvider.fetchMovies();
+            },
+          ),
+          IconButton(
+            icon: Icon(showFavorites ? Icons.list : Icons.favorite),
+            onPressed: () {
+              setState(() {
+                showFavorites = !showFavorites;
+              });
+            },
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: search,
+              onChanged: (query) {
+                setState(() {
+                  searchQuery = query; // Update search query
+                });
+              },
+              decoration: InputDecoration(
+                hintText: "Search movies...",
+                hintStyle: const TextStyle(color: Colors.grey),
+                suffixIcon: searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          setState(() {
+                            search.text = '';
+                            searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+              style: const TextStyle(color: Colors.black),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Expanded(
+            child: movieProvider.isLoading // Check loading state directly
+                ? const Center(child: CircularProgressIndicator())
+                : movieProvider.movies
+                        .isEmpty // Check for empty list only after loading is done
+                    ? const Center(child: Text('No movies found'))
+                    : GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.7,
+                        ),
+                        // ...itemBuilder remains the same but access movies via provider...
+
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MovieDetailsPage(
+                                      movie: filteredMovies[index]),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              clipBehavior: Clip.antiAlias,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Image.network(
+                                    filteredMovies[index].posterPath,
+                                    fit: BoxFit.cover,
+                                    width:
+                                        MediaQuery.sizeOf(context).width * 0.4,
+                                    height: MediaQuery.sizeOf(context).height *
+                                        0.26, // Adjust height as needed
+                                  ),
+                                  Container(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            filteredMovies[index].title,
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          onPressed: () =>
+                                              movieProvider.toggleFavorite(
+                                                  filteredMovies[index].id),
+                                          icon: Icon(
+                                            filteredMovies[index].isFavorite
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        itemCount: filteredMovies.length,
+                      ),
+          )
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
