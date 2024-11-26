@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart'; // Add Hive
 
 import 'package:provider/provider.dart';
 import 'package:sample_movie_app/Model/movieModel.dart';
+import 'package:sample_movie_app/Provider/movieAdapter.dart';
 import 'package:sample_movie_app/Screens/movieList.dart';
 import 'Provider/movieProvider.dart';
 
@@ -15,6 +16,7 @@ void main() async {
 
   // Open the Hive box.  Use a unique name for your box.
   await Hive.openBox<Movie>('favoriteMovies');
+  
   runApp(
     ChangeNotifierProvider(
       create: (context) => MovieProvider(),

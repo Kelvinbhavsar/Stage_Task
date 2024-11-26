@@ -4,7 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:sample_movie_app/Model/movieModel.dart'; // for jsonDecodeimport 'package:sample_movie_app/Model/movieModel.dart';
+import 'package:sample_movie_app/Model/movieModel.dart';
 
 class MovieProvider extends ChangeNotifier {
   List<Movie> _movies = [];
@@ -12,7 +12,6 @@ class MovieProvider extends ChangeNotifier {
 
   List<Movie> get movies => _movies; // Getter for movies
   bool get isLoading => _isLoading;
-  //
 
   Future<void> fetchMovies() async {
     _isLoading = true; // Indicate loading
@@ -87,6 +86,4 @@ class MovieProvider extends ChangeNotifier {
     await box.delete(movieId);
     notifyListeners();
   }
-
-  // ... other methods like fetching movies from API
 }

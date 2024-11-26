@@ -44,9 +44,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     final movieProvider = context.watch<MovieProvider>();
     var box = Hive.box<Movie>('favoriteMovies');
-    box.values.forEach((element) {
+    for (var element in box.values) {
       print(element.title);
-    });
+    }
 
     List<Movie> displayedMovies = isOffline
         ? box.values.toList()
@@ -68,12 +68,6 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              movieProvider.fetchMovies();
-            },
-          ),
           IconButton(
             icon: Icon(showFavorites ? Icons.list : Icons.favorite),
             onPressed: () {
@@ -110,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       )
                     : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
                   borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
               ),
@@ -125,9 +119,41 @@ class _MyHomePageState extends State<MyHomePage> {
                 ? const Center(child: CircularProgressIndicator())
                 : movieProvider.movies
                         .isEmpty // Check for empty list only after loading is done
-                    ? const Center(child: Text('No movies found'))
-                    : filteredMovies.isEmpty
-                        ? const Center(child: Text('No movies found'))
+                    ? Column(
+                        children: [
+                          const Center(child: Text('No movies found')),
+                          IconButton(
+                            icon: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.refresh),
+                                Text('Refresh'),
+                              ],
+                            ),
+                            onPressed: () {
+                              movieProvider.fetchMovies();
+                            },
+                          ),
+                        ],
+                      )
+                    : allMovies.isEmpty
+                        ? Column(
+                            children: [
+                              const Center(child: Text('No movies found')),
+                              IconButton(
+                                icon: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.refresh),
+                                    Text('Refresh'),
+                                  ],
+                                ),
+                                onPressed: () {
+                                  movieProvider.fetchMovies();
+                                },
+                              ),
+                            ],
+                          )
                         : GridView.builder(
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
@@ -163,33 +189,31 @@ class _MyHomePageState extends State<MyHomePage> {
                                             MediaQuery.sizeOf(context).height *
                                                 0.26, // Adjust height as needed
                                       ),
-                                      Container(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          children: [
-                                            const SizedBox(
-                                              width: 10,
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          const SizedBox(
+                                            width: 10,
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              filteredMovies[index].title,
+                                              maxLines: 1,
                                             ),
-                                            Expanded(
-                                              child: Text(
-                                                filteredMovies[index].title,
-                                                maxLines: 1,
-                                              ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () =>
+                                                movieProvider.toggleFavorite(
+                                                    filteredMovies[index].id),
+                                            icon: Icon(
+                                              filteredMovies[index].isFavorite
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color: Colors.red,
                                             ),
-                                            IconButton(
-                                              onPressed: () =>
-                                                  movieProvider.toggleFavorite(
-                                                      filteredMovies[index].id),
-                                              icon: Icon(
-                                                filteredMovies[index].isFavorite
-                                                    ? Icons.favorite
-                                                    : Icons.favorite_border,
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),

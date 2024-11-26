@@ -70,7 +70,7 @@ class MovieDetailsPage extends StatelessWidget {
                     // Add more movie details here (synopsis, cast, reviews, etc.)
                     Text(
                       movie.overview, // Replace with actual synopsis
-                      style: TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16),
                     ),
                   ],
                 ),
