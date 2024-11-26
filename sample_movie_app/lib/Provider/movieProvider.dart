@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -59,6 +60,31 @@ class MovieProvider extends ChangeNotifier {
       print(movies[movieIndex].isFavorite);
       // This tells the UI to rebuild.
     }
+    notifyListeners();
+  }
+
+  Future<void> addFavorite(Movie movie) async {
+    var box = Hive.box<Movie>('favoriteMovies');
+    print("object ${movie.toString()}");
+// Check if the movie with the same ID already exists in the favorites box
+
+    final existingMovie = box.values.firstWhere((m) => m.id == movie.id);
+
+    if (existingMovie.id == movie.id) {
+      //If found, Update
+      box.delete(movie.id);
+    } else {
+      // If not found, add the movie to the favorites box
+      box.put(movie.id, movie);
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> removeFavorite(int movieId) async {
+    var box = Hive.box<Movie>('favoriteMovies');
+    print("object $movieId");
+    await box.delete(movieId);
     notifyListeners();
   }
 

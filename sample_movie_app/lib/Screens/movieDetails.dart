@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sample_movie_app/Model/movieModel.dart';
-import 'package:sample_movie_app/Provider/likeUnlikeProvider.dart';
+import 'package:sample_movie_app/Provider/movieProvider.dart';
 
 class MovieDetailsPage extends StatelessWidget {
   final Movie movie;
