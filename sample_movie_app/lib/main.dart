@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart'; // Add Hive
+import 'package:flutter/material.dart'; // Add Hive
 
 import 'package:provider/provider.dart';
 import 'package:sample_movie_app/Model/movieModel.dart';
@@ -9,14 +8,14 @@ import 'Provider/movieProvider.dart';
 
 void main() async {
   // Initialize Hive before running the app
-  await Hive.initFlutter();
+  // await Hive.initFlutter();
 
-  // Register the Movie adapter
-  Hive.registerAdapter(MovieAdapter());
+  // // Register the Movie adapter
+  // Hive.registerAdapter(MovieAdapter());
 
-  // Open the Hive box.  Use a unique name for your box.
-  await Hive.openBox<Movie>('favoriteMovies');
-  
+  // // Open the Hive box.  Use a unique name for your box.
+  // await Hive.openBox<Movie>('favoriteMovies');
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => MovieProvider(),

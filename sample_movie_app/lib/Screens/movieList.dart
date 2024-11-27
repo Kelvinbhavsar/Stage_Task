@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sample_movie_app/Model/movieModel.dart';
 import 'package:sample_movie_app/Provider/movieProvider.dart';
@@ -43,16 +42,16 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final movieProvider = context.watch<MovieProvider>();
-    var box = Hive.box<Movie>('favoriteMovies');
-    for (var element in box.values) {
-      print(element.title);
-    }
+    // var box = Hive.box<Movie>('favoriteMovies');
+    // for (var element in box.values) {
+    //   print(element.title);
+    // }
 
-    List<Movie> displayedMovies = isOffline
-        ? box.values.toList()
-        : showFavorites
-            ? box.values.toList()
-            : movieProvider.movies;
+    // List<Movie> displayedMovies = isOffline
+    //     ? box.values.toList()
+    //     : showFavorites
+    //         ? box.values.toList()
+    //         : movieProvider.movies;
 
     List<Movie> allMovies = showFavorites
         ? movieProvider.movies.where((movie) => movie.isFavorite).toList()
